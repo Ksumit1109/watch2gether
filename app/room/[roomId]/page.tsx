@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Copy, Users, Crown, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const SERVER_URL = "http://localhost:5000";
+const SERVER_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
 export default function RoomPage() {
   const params = useParams();
@@ -30,34 +31,95 @@ export default function RoomPage() {
   const [memberCount, setMemberCount] = useState(1);
   const [currentVideoId, setCurrentVideoId] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isJoining, setIsJoining] = useState(true);
 
   useEffect(() => {
     const sock = getSocket(SERVER_URL);
 
+    // Connect first
     sock.connect();
 
-    sock.emit("join_room", { roomId, username }, (response: { ok: boolean; error?: string }) => {
-      if (!response.ok) {
-        toast({
-          title: "Error",
-          description: response.error || "Failed to join room",
-          variant: "destructive",
-        });
-        router.push("/");
-        return;
-      }
+    // Wait for connection before joining room
+    const handleConnect = () => {
+      console.log("Socket connected:", sock.id);
       setIsConnected(true);
-    });
 
-    sock.on("connect", () => {
-      setIsConnected(true);
-    });
+      // Now join the room
+      sock.emit(
+        "join_room",
+        { roomId, username },
+        (response: {
+          ok: boolean;
+          error?: string;
+          isHost?: boolean;
+          memberCount?: number;
+        }) => {
+          console.log("Join room response:", response);
+          setIsJoining(false);
 
-    sock.on("disconnect", () => {
+          if (!response.ok) {
+            toast({
+              title: "Error",
+              description: response.error || "Failed to join room",
+              variant: "destructive",
+            });
+            router.push("/");
+            return;
+          }
+
+          // Set initial state
+          if (response.isHost !== undefined) {
+            setIsHost(response.isHost);
+          }
+          if (response.memberCount !== undefined) {
+            setMemberCount(response.memberCount);
+          }
+
+          toast({
+            title: "Joined Room",
+            description: `Welcome to room ${roomId}!`,
+          });
+        }
+      );
+    };
+
+    // Handle already connected
+    if (sock.connected) {
+      handleConnect();
+    } else {
+      sock.on("connect", handleConnect);
+    }
+
+    sock.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
       setIsConnected(false);
+
+      toast({
+        title: "Disconnected",
+        description: "Connection lost. Attempting to reconnect...",
+        variant: "destructive",
+      });
+    });
+
+    sock.on("reconnect", () => {
+      console.log("Socket reconnected");
+      // Rejoin room after reconnection
+      sock.emit(
+        "join_room",
+        { roomId, username },
+        (response: { ok: boolean; error?: string }) => {
+          if (response.ok) {
+            toast({
+              title: "Reconnected",
+              description: "Successfully rejoined the room",
+            });
+          }
+        }
+      );
     });
 
     sock.on("you_are_host", () => {
+      console.log("You are now the host");
       setIsHost(true);
       toast({
         title: "You are now the host",
@@ -66,20 +128,67 @@ export default function RoomPage() {
     });
 
     sock.on("member_update", ({ members }: { members: number }) => {
+      console.log("Member update:", members);
       setMemberCount(members);
     });
 
-    sock.on("change_video", ({ videoId, by }: { videoId: string; by: string }) => {
-      setCurrentVideoId(videoId);
+    sock.on(
+      "change_video",
+      ({
+        videoId,
+        by,
+        startTime,
+      }: {
+        videoId: string;
+        by: string;
+        startTime?: number;
+      }) => {
+        console.log(
+          "Video changed:",
+          videoId,
+          "by:",
+          by,
+          "startTime:",
+          startTime
+        );
+        setCurrentVideoId(videoId);
+
+        // Don't show toast for your own actions
+        if (by !== username) {
+          toast({
+            title: "Video Changed",
+            description: `${by} changed the video`,
+          });
+        }
+      }
+    );
+
+    sock.on("user_joined", ({ username: joinedUser }: { username: string }) => {
       toast({
-        title: "Video Changed",
-        description: `${by} changed the video`,
+        title: "User Joined",
+        description: `${joinedUser} joined the room`,
+      });
+    });
+
+    sock.on("user_left", ({ username: leftUser }: { username: string }) => {
+      toast({
+        title: "User Left",
+        description: `${leftUser} left the room`,
       });
     });
 
     setSocket(sock);
 
     return () => {
+      console.log("Cleaning up socket");
+      sock.off("connect");
+      sock.off("disconnect");
+      sock.off("reconnect");
+      sock.off("you_are_host");
+      sock.off("member_update");
+      sock.off("change_video");
+      sock.off("user_joined");
+      sock.off("user_left");
       sock.disconnect();
     };
   }, [roomId, username, router, toast]);
@@ -95,12 +204,14 @@ export default function RoomPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!isConnected) {
+  if (!isConnected || isJoining) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-lg font-medium text-slate-700">Connecting to room...</p>
+          <p className="text-lg font-medium text-slate-700">
+            {isConnected ? "Joining room..." : "Connecting to room..."}
+          </p>
         </div>
       </div>
     );
@@ -112,9 +223,14 @@ export default function RoomPage() {
         <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-800">Room: {roomId}</h1>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Room: {roomId}
+              </h1>
               {isHost && (
-                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                <Badge
+                  variant="default"
+                  className="bg-amber-500 hover:bg-amber-600"
+                >
                   <Crown className="w-3 h-3 mr-1" />
                   Host
                 </Badge>
@@ -147,7 +263,12 @@ export default function RoomPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
             <Card className="p-4">
-              <VideoPlayer socket={socket} currentVideoId={currentVideoId} isHost={isHost} />
+              <VideoPlayer
+                socket={socket}
+                currentVideoId={currentVideoId}
+                setCurrentVideoId={setCurrentVideoId}
+                isHost={isHost}
+              />
             </Card>
 
             <Card className="p-4 lg:hidden">
@@ -159,7 +280,13 @@ export default function RoomPage() {
 
           <div className="space-y-4">
             <div className="h-96">
-              <VideoSearch socket={socket} serverUrl={SERVER_URL} />
+              <VideoSearch
+                socket={socket}
+                serverUrl={SERVER_URL}
+                onVideoSelect={(videoId) => {
+                  setCurrentVideoId(videoId);
+                }}
+              />
             </div>
 
             <div className="hidden lg:block h-96">
