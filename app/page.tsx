@@ -21,7 +21,7 @@ export default function Home() {
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
+  // changes
   useEffect(() => {
     if (session === null) {
       router.push("/login");
