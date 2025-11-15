@@ -6,11 +6,7 @@ import { getSocket } from "@/lib/socket";
 import { Socket } from "socket.io-client";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChatPanel from "@/components/ChatPanel";
-import VideoSearch from "@/components/VideoSearch";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Copy, Users, Crown, CheckCircle2 } from "lucide-react";
+import { MessageSquare, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const SERVER_URL =
@@ -30,7 +26,7 @@ export default function RoomPage() {
   const [isHost, setIsHost] = useState(false);
   const [memberCount, setMemberCount] = useState(1);
   const [currentVideoId, setCurrentVideoId] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [showChat, setShowChat] = useState(true);
   const [isJoining, setIsJoining] = useState(true);
 
   useEffect(() => {
@@ -193,23 +189,12 @@ export default function RoomPage() {
     };
   }, [roomId, username, router, toast]);
 
-  const copyRoomLink = () => {
-    const link = `${window.location.origin}/room/${roomId}`;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast({
-      title: "Link Copied!",
-      description: "Share this link with your friends",
-    });
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   if (!isConnected || isJoining) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-lg font-medium text-slate-700">
+          <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-lg font-medium text-gray-700">
             {isConnected ? "Joining room..." : "Connecting to room..."}
           </p>
         </div>
@@ -218,82 +203,59 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-4">
-        <Card className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-800">
-                Room: {roomId}
-              </h1>
-              {isHost && (
-                <Badge
-                  variant="default"
-                  className="bg-amber-500 hover:bg-amber-600"
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex-1 flex overflow-hidden">
+        <VideoPlayer
+          socket={socket}
+          currentVideoId={currentVideoId}
+          setCurrentVideoId={setCurrentVideoId}
+          isHost={isHost}
+          memberCount={memberCount}
+          serverUrl={SERVER_URL}
+        />
+        {showChat && (
+          <div className="hidden lg:block">
+            <ChatPanel
+              socket={socket}
+              currentUser={username}
+              roomId={roomId}
+              memberCount={memberCount}
+            />
+          </div>
+        )}
+      </div>
+      <div className="lg:hidden fixed inset-0 pointer-events-none">
+        {!showChat && (
+          <button
+            onClick={() => setShowChat(true)}
+            className="pointer-events-auto fixed bottom-6 right-6 bg-red-600 hover:bg-red-700 text-white rounded-full p-4 shadow-lg transition-colors"
+          >
+            <MessageSquare className="w-6 h-6" />
+          </button>
+        )}
+        {showChat && (
+          <div className="pointer-events-auto fixed inset-0 bg-black bg-opacity-50 flex items-end">
+            <div className="w-full h-2/3 bg-white rounded-t-2xl flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-900">Chat</h3>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <Crown className="w-3 h-3 mr-1" />
-                  Host
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="px-3 py-1.5">
-                <Users className="w-4 h-4 mr-1.5" />
-                {memberCount} {memberCount === 1 ? "member" : "members"}
-              </Badge>
-
-              <Button onClick={copyRoomLink} variant="outline" size="sm">
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Share Link
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-4">
-            <Card className="p-4">
-              <VideoPlayer
-                socket={socket}
-                currentVideoId={currentVideoId}
-                setCurrentVideoId={setCurrentVideoId}
-                isHost={isHost}
-              />
-            </Card>
-
-            <Card className="p-4 lg:hidden">
-              <div className="h-96">
-                <ChatPanel socket={socket} />
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <div className="h-96">
-              <VideoSearch
-                socket={socket}
-                serverUrl={SERVER_URL}
-                onVideoSelect={(videoId) => {
-                  setCurrentVideoId(videoId);
-                }}
-              />
-            </div>
-
-            <div className="hidden lg:block h-96">
-              <ChatPanel socket={socket} />
+              <div className="flex-1 flex flex-col min-h-0">
+                <ChatPanel
+                  socket={socket}
+                  currentUser={username}
+                  roomId={roomId}
+                  memberCount={memberCount}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

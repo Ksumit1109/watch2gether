@@ -1,3 +1,4 @@
+// app/login/page.tsx (adapted with red theme)
 "use client";
 
 import { useEffect } from "react";
@@ -45,16 +46,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-4 text-center pb-8">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center shadow-lg">
             <Video className="w-10 h-10 text-white" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-gray-900">
             Watch Together
           </CardTitle>
-          <CardDescription className="text-base text-slate-600">
+          <CardDescription className="text-base text-gray-600">
             Watch YouTube videos in perfect sync with your friends in real-time
           </CardDescription>
         </CardHeader>
@@ -63,7 +64,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <Button
               onClick={handleGoogleLogin}
-              className="w-full h-12 text-base font-semibold bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+              className="w-full h-12 text-base font-semibold bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
               size="lg"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -89,16 +90,16 @@ export default function LoginPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-slate-500 font-medium">
+                <span className="bg-white px-3 text-gray-500 font-medium">
                   Secure Login
                 </span>
               </div>
             </div>
 
-            <div className="text-center text-sm text-slate-500">
+            <div className="text-center text-sm text-gray-500">
               <p>Sign in to create or join watch rooms</p>
               <p className="mt-2">Your data is protected and secure</p>
             </div>
