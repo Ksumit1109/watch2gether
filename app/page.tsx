@@ -20,7 +20,7 @@ export default function Home() {
   const supabase = useSupabaseClient();
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   // changes
   // useEffect(() => {
   //   if (session === null) {
@@ -49,38 +49,52 @@ export default function Home() {
     router.push("/login");
   };
 
-  // if (isLoading || !session) {
-  //   return (
-  //     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-  //         <p className="text-slate-600">Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      {/* <div className="absolute top-4 right-4 flex items-center gap-3 bg-white rounded-lg shadow-md px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-blue-600" />
+      {session?.user ? (
+        <div className="absolute top-4 right-4 flex items-center gap-3 bg-white rounded-lg shadow-md px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-blue-600" />
+            </div>
+            <span className="text-sm font-medium text-slate-700 max-w-[150px] truncate">
+              {session.user.email || "Unknown user"}
+            </span>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
+            </Button>
           </div>
-          <span className="text-sm font-medium text-slate-700 max-w-[150px] truncate">
-            {session.user.email}
-          </span>
         </div>
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          size="sm"
-          className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-        >
-          <LogOut className="w-4 h-4 mr-1" />
-          Logout
-        </Button>
-      </div> */}
+      ) : (
+        <div className="absolute top-4 right-4 ">
+          <Button
+            onClick={() => router.push("/login")}
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+          >
+            <User className="w-4 h-4 mr-1" />
+            Login
+          </Button>
+        </div>
+      )}
 
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-3 text-center">
