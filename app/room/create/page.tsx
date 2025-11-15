@@ -1,4 +1,3 @@
-// app/room/create/page.tsx (adapted with red theme)
 "use client";
 
 import { useEffect } from "react";
@@ -35,10 +34,10 @@ export default function CreateRoom() {
   }, [router, username]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin text-red-600 mx-auto" />
-        <p className="text-lg font-medium text-gray-700">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+        <p className="text-lg font-medium text-slate-700">
           Creating your room...
         </p>
       </div>
