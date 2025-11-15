@@ -46,7 +46,7 @@ export default function Home() {
   const handleLogout = async () => {
     setIsLoading(true);
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   if (isLoading) {
