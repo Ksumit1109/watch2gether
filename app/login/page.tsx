@@ -3,15 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video } from "lucide-react";
+import { Video, ArrowLeft } from "lucide-react";
+import YouTubeHeader from "@/components/YouTubeHeader";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,33 +32,52 @@ export default function LoginPage() {
 
   if (session) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Redirecting...</p>
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#FF0000] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#f1f1f1] text-lg">Redirecting...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="space-y-4 text-center pb-8">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-            <Video className="w-10 h-10 text-white" />
-          </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Watch Together
-          </CardTitle>
-          <CardDescription className="text-base text-slate-600">
-            Watch YouTube videos in perfect sync with your friends in real-time
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen bg-[#0f0f0f]">
+      <YouTubeHeader />
 
-        <CardContent className="space-y-6 pb-8">
-          <div className="space-y-4">
+      <main className="pt-[var(--yt-header-height)] min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Back Button */}
+          <Button
+            onClick={() => router.push("/")}
+            variant="ghost"
+            className="text-[#aaaaaa] hover:text-[#f1f1f1] hover:bg-[#272727] mb-6"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+
+          {/* Login Card */}
+          <div className="bg-[#212121] rounded-xl p-8 shadow-lg">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-[#FF0000] to-[#CC0000] rounded-full flex items-center justify-center shadow-lg">
+                <Video className="w-10 h-10 text-white" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-3xl font-bold text-center text-[#f1f1f1] mb-2">
+              Sign in to Watch2gether
+            </h1>
+            <p className="text-center text-[#aaaaaa] mb-8">
+              Watch YouTube videos in sync with your friends
+            </p>
+
+            {/* Google Sign In Button */}
             <Button
               onClick={handleGoogleLogin}
-              className="w-full h-12 text-base font-semibold bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm"
-              size="lg"
+              className="w-full h-12 bg-white hover:bg-gray-100 text-[#1f1f1f] font-medium text-base shadow-md transition-all"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path
@@ -87,24 +100,85 @@ export default function LoginPage() {
               Continue with Google
             </Button>
 
-            <div className="relative">
+            {/* Divider */}
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200" />
+                <span className="w-full border-t border-[#303030]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-slate-500 font-medium">
-                  Secure Login
+                <span className="bg-[#212121] px-3 text-[#717171] font-medium">
+                  Optional
                 </span>
               </div>
             </div>
 
-            <div className="text-center text-sm text-slate-500">
-              <p>Sign in to create or join watch rooms</p>
-              <p className="mt-2">Your data is protected and secure</p>
+            {/* Continue Without Login */}
+            <Button
+              onClick={() => router.push("/")}
+              variant="outline"
+              className="w-full h-12 bg-transparent border-2 border-[#303030] text-[#f1f1f1] hover:bg-[#272727] hover:border-[#3f3f3f] font-medium text-base"
+            >
+              Continue without signing in
+            </Button>
+
+            {/* Info Text */}
+            <div className="mt-6 text-center space-y-2">
+              <p className="text-sm text-[#aaaaaa]">
+                Sign in to save your watch history and preferences
+              </p>
+              <p className="text-xs text-[#717171]">
+                Your data is protected and secure
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Features */}
+          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="w-10 h-10 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-2">
+                <Video className="w-5 h-5 text-[#FF0000]" />
+              </div>
+              <p className="text-xs text-[#aaaaaa]">Sync Playback</p>
+            </div>
+            <div>
+              <div className="w-10 h-10 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-2">
+                <svg
+                  className="w-5 h-5 text-[#FF0000]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <p className="text-xs text-[#aaaaaa]">Live Chat</p>
+            </div>
+            <div>
+              <div className="w-10 h-10 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-2">
+                <svg
+                  className="w-5 h-5 text-[#FF0000]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <p className="text-xs text-[#aaaaaa]">Multi-User</p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

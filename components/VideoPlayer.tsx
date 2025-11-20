@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubePlayer } from "react-youtube";
 import { Socket } from "socket.io-client";
+import { Video } from "lucide-react";
 
 interface VideoPlayerProps {
   socket: Socket | null;
@@ -263,10 +264,15 @@ export default function VideoPlayer({
 
   if (!currentVideoId) {
     return (
-      <div className="w-full aspect-video bg-slate-900 rounded-lg flex items-center justify-center">
-        <div className="text-center space-y-2">
-          <p className="text-slate-400 text-lg">No video selected</p>
-          <p className="text-slate-500 text-sm">
+      <div className="w-full aspect-video bg-[#0f0f0f] rounded-xl flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center mx-auto">
+            <Video className="w-8 h-8 text-[#717171]" />
+          </div>
+          <p className="text-[#aaaaaa] text-lg font-medium">
+            No video selected
+          </p>
+          <p className="text-[#717171] text-sm">
             Search for a video to get started
           </p>
         </div>

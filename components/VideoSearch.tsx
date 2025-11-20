@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Socket } from "socket.io-client";
 import { Search, Loader2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 interface VideoSearchProps {
   socket: Socket | null;
   serverUrl: string;
+  initialQuery?: string;
   onVideoSelect?: (videoId: string) => void;
 }
 
@@ -29,15 +28,25 @@ interface VideoResult {
 export default function VideoSearch({
   socket,
   serverUrl,
+  initialQuery = "",
   onVideoSelect,
 }: VideoSearchProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<VideoResult[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const searchVideos = async () => {
-    if (!query.trim()) {
+  // Auto-search when initialQuery is provided
+  useEffect(() => {
+    if (initialQuery && initialQuery.trim()) {
+      searchVideos(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const searchVideos = async (searchQuery?: string) => {
+    const queryToSearch = searchQuery || query;
+
+    if (!queryToSearch.trim()) {
       toast({
         title: "Empty Query",
         description: "Please enter a search term",
@@ -50,7 +59,9 @@ export default function VideoSearch({
 
     try {
       const response = await fetch(
-        `${serverUrl}/api/search?q=${encodeURIComponent(query)}&maxResults=10`
+        `${serverUrl}/api/search?q=${encodeURIComponent(
+          queryToSearch
+        )}&maxResults=10`
       );
       const data = await response.json();
 
@@ -112,71 +123,90 @@ export default function VideoSearch({
   };
 
   return (
-    <Card className="h-full flex flex-col p-4">
-      <h3 className="text-lg font-semibold mb-4 text-slate-800">
-        Search Videos
-      </h3>
-
-      <div className="flex gap-2 mb-4">
-        <Input
-          type="text"
-          placeholder="Search YouTube..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
-          className="flex-1"
-        />
-        <Button onClick={searchVideos} disabled={loading} size="icon">
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Search className="w-4 h-4" />
-          )}
-        </Button>
+    <div className="flex flex-col bg-[#212121] rounded-xl overflow-hidden h-[70vh]">
+      {/* Search Header */}
+      <div className="p-4 border-b border-[#303030] flex-shrink-0">
+        <div className="yt-search">
+          <Input
+            type="text"
+            placeholder="Search YouTube..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-1 bg-transparent border-0 text-[#f1f1f1] placeholder:text-[#717171] focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            onClick={() => searchVideos()}
+            disabled={loading}
+            size="icon"
+            className="bg-[#272727] hover:bg-[#3f3f3f] text-[#f1f1f1] rounded-none border-l border-[#303030]"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Search className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="space-y-3">
+      {/* Results - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-3 space-y-3">
           {results.length === 0 && !loading && (
-            <div className="text-center py-8 text-slate-500">
-              <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>Search for videos to add to your watch party</p>
+            <div className="text-center py-12 px-4">
+              <Search className="w-12 h-12 mx-auto mb-3 text-[#717171]" />
+              <p className="text-[#aaaaaa] text-sm">
+                Search for videos to add to your watch party
+              </p>
+            </div>
+          )}
+
+          {loading && (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="yt-thumbnail bg-[#272727]" />
+                  <div className="mt-2 space-y-2">
+                    <div className="h-4 bg-[#272727] rounded w-3/4" />
+                    <div className="h-3 bg-[#272727] rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           {results.map((video) => (
             <div
               key={video.id.videoId}
-              className="group cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-lg overflow-hidden transition-all"
+              className="group cursor-pointer"
               onClick={() =>
                 handleVideoSelect(video.id.videoId, video.snippet.title)
               }
             >
-              <div className="flex gap-3 p-2">
-                <div className="relative flex-shrink-0">
-                  <img
-                    src={video.snippet.thumbnails.medium.url}
-                    alt={video.snippet.title}
-                    className="w-32 h-20 object-cover rounded"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-                    <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-all" />
+              {/* Thumbnail */}
+              <div className="yt-thumbnail">
+                <img
+                  src={video.snippet.thumbnails.medium.url}
+                  alt={video.snippet.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[#FF0000] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
+                    <Play className="w-6 h-6 text-white ml-1" />
                   </div>
                 </div>
+              </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm text-slate-800 line-clamp-2 mb-1">
-                    {video.snippet.title}
-                  </h4>
-                  <p className="text-xs text-slate-600">
-                    {video.snippet.channelTitle}
-                  </p>
-                </div>
+              {/* Video Info */}
+              <div className="mt-2 px-1">
+                <h4 className="yt-video-title mb-1">{video.snippet.title}</h4>
+                <p className="yt-metadata">{video.snippet.channelTitle}</p>
               </div>
             </div>
           ))}
         </div>
-      </ScrollArea>
-    </Card>
+      </div>
+    </div>
   );
 }

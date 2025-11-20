@@ -1,34 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Users, Video, LogOut, User } from "lucide-react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { Users, Video, Play, UserPlus } from "lucide-react";
+import { useSession } from "@supabase/auth-helpers-react";
+import YouTubeHeader from "@/components/YouTubeHeader";
 
 export default function Home() {
   const router = useRouter();
   const session = useSession();
-  const supabase = useSupabaseClient();
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  // changes
-  // useEffect(() => {
-  //   if (session === null) {
-  //     router.push("/login");
-  //   } else {
-  //     setIsLoading(false);
-  //   }
-  // }, [session, router]);
 
   const handleCreateRoom = () => {
     const name =
@@ -43,131 +27,139 @@ export default function Home() {
     router.push(`/room/${roomId}?username=${encodeURIComponent(name)}`);
   };
 
-  const handleLogout = async () => {
-    setIsLoading(true);
-    await supabase.auth.signOut();
-    setIsLoading(false);
-    router.push("/");
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      {session?.user ? (
-        <div className="absolute top-4 right-4 flex items-center gap-3 bg-white rounded-lg shadow-md px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-blue-600" />
+    <div className="min-h-screen bg-[#0f0f0f]">
+      <YouTubeHeader />
+
+      {/* Main Content */}
+      <main className="pt-[var(--yt-header-height)] min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-6xl w-full">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#FF0000] to-[#CC0000] rounded-full mb-6 shadow-lg">
+              <Video className="w-10 h-10 text-white" />
             </div>
-            <span className="text-sm font-medium text-slate-700 max-w-[150px] truncate">
-              {session.user.email || "Unknown user"}
-            </span>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-            >
-              <LogOut className="w-4 h-4 mr-1" />
-              Logout
-            </Button>
+            <h1 className="text-4xl md:text-5xl font-bold text-[#f1f1f1] mb-4">
+              Watch Together, Anywhere
+            </h1>
+            <p className="text-lg text-[#aaaaaa] max-w-2xl mx-auto">
+              Create a room, share the link, and watch YouTube videos in perfect
+              sync with your friends
+            </p>
           </div>
-        </div>
-      ) : (
-        <div className="absolute top-4 right-4 ">
-          <Button
-            onClick={() => router.push("/login")}
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-          >
-            <User className="w-4 h-4 mr-1" />
-            Login
-          </Button>
-        </div>
-      )}
 
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-            <Video className="w-8 h-8 text-white" />
-          </div>
-          <CardTitle className="text-3xl font-bold">Watch Together</CardTitle>
-          <CardDescription className="text-base">
-            Watch YouTube videos in sync with your friends
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Your Display Name
+          {/* Username Input */}
+          <div className="max-w-md mx-auto mb-8">
+            <label className="block text-sm font-medium text-[#aaaaaa] mb-2">
+              Display Name (Optional)
             </label>
             <Input
-              placeholder="Enter your name (optional)"
+              placeholder="Enter your name"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="h-11"
+              className="yt-input h-12 text-base"
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#717171] mt-2">
               Leave empty for a random name
             </p>
           </div>
 
-          <div className="space-y-3">
-            <Button
+          {/* Action Cards */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Create Room Card */}
+            <div
+              className="yt-card group cursor-pointer"
               onClick={handleCreateRoom}
-              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
-              size="lg"
             >
-              <Users className="w-5 h-5 mr-2" />
-              Create New Room
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500">Or</span>
+              <div className="p-8">
+                <div className="w-16 h-16 bg-[#FF0000] rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#f1f1f1] mb-3 group-hover:text-white transition-colors">
+                  Create New Room
+                </h2>
+                <p className="text-[#aaaaaa] mb-6">
+                  Start a new watch party and invite your friends to join
+                </p>
+                <Button className="w-full bg-[#FF0000] hover:bg-[#CC0000] text-white h-12 text-base font-medium">
+                  <Play className="w-5 h-5 mr-2" />
+                  Create Room
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Join Existing Room
-              </label>
-              <Input
-                placeholder="Enter room code"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
-                className="h-11"
-              />
-              <Button
-                onClick={handleJoinRoom}
-                variant="outline"
-                className="w-full h-12 text-base font-semibold border-2 hover:bg-slate-50"
-                size="lg"
-                disabled={!roomId.trim()}
-              >
-                Join Room
-              </Button>
+            {/* Join Room Card */}
+            <div className="yt-card">
+              <div className="p-8">
+                <div className="w-16 h-16 bg-[#3ea6ff] rounded-full flex items-center justify-center mb-6">
+                  <UserPlus className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#f1f1f1] mb-3">
+                  Join Existing Room
+                </h2>
+                <p className="text-[#aaaaaa] mb-6">
+                  Enter a room code to join your friends
+                </p>
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Enter room code"
+                    value={roomId}
+                    onChange={(e) => setRoomId(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+                    className="yt-input h-12 text-base"
+                  />
+                  <Button
+                    onClick={handleJoinRoom}
+                    disabled={!roomId.trim()}
+                    className="w-full bg-[#272727] hover:bg-[#3f3f3f] text-[#f1f1f1] h-12 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Join Room
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Features */}
+          <div className="mt-16 grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Video className="w-6 h-6 text-[#FF0000]" />
+              </div>
+              <h3 className="text-lg font-semibold text-[#f1f1f1] mb-2">
+                Synchronized Playback
+              </h3>
+              <p className="text-sm text-[#aaaaaa]">
+                Watch videos in perfect sync with all room members
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-[#FF0000]" />
+              </div>
+              <h3 className="text-lg font-semibold text-[#f1f1f1] mb-2">
+                Live Chat
+              </h3>
+              <p className="text-sm text-[#aaaaaa]">
+                Chat with friends while watching together
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#272727] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Play className="w-6 h-6 text-[#FF0000]" />
+              </div>
+              <h3 className="text-lg font-semibold text-[#f1f1f1] mb-2">
+                Easy Sharing
+              </h3>
+              <p className="text-sm text-[#aaaaaa]">
+                Share room links instantly with anyone
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

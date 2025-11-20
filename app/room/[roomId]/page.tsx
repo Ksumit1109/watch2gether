@@ -7,10 +7,9 @@ import { Socket } from "socket.io-client";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChatPanel from "@/components/ChatPanel";
 import VideoSearch from "@/components/VideoSearch";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import YouTubeHeader from "@/components/YouTubeHeader";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Users, Crown, CheckCircle2 } from "lucide-react";
+import { Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const SERVER_URL =
@@ -32,6 +31,7 @@ export default function RoomPage() {
   const [currentVideoId, setCurrentVideoId] = useState("");
   const [copied, setCopied] = useState(false);
   const [isJoining, setIsJoining] = useState(true);
+  const [showSearch, setShowSearch] = useState<string>("");
 
   useEffect(() => {
     const sock = getSocket(SERVER_URL);
@@ -193,6 +193,20 @@ export default function RoomPage() {
     };
   }, [roomId, username, router, toast]);
 
+  // Listen for global search events from header
+  useEffect(() => {
+    const handleGlobalSearch = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.query) {
+        setShowSearch(customEvent.detail.query); // Pass the query
+      }
+    };
+
+    window.addEventListener("global-search", handleGlobalSearch);
+    return () =>
+      window.removeEventListener("global-search", handleGlobalSearch);
+  }, []);
+
   const copyRoomLink = () => {
     const link = `${window.location.origin}/room/${roomId}`;
     navigator.clipboard.writeText(link);
@@ -206,10 +220,10 @@ export default function RoomPage() {
 
   if (!isConnected || isJoining) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-lg font-medium text-slate-700">
+          <div className="w-12 h-12 border-4 border-[#FF0000] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-lg font-medium text-[#f1f1f1]">
             {isConnected ? "Joining room..." : "Connecting to room..."}
           </p>
         </div>
@@ -218,83 +232,92 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-4">
-        <Card className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-800">
-                Room: {roomId}
-              </h1>
-              {isHost && (
-                <Badge
-                  variant="default"
-                  className="bg-amber-500 hover:bg-amber-600"
-                >
-                  <Crown className="w-3 h-3 mr-1" />
-                  Host
-                </Badge>
-              )}
+    <div className="min-h-screen bg-[#0f0f0f]">
+      <YouTubeHeader
+        roomId={roomId}
+        memberCount={memberCount}
+        onShareRoom={copyRoomLink}
+      />
+
+      {/* Main Content */}
+      <main className="pt-[var(--yt-header-height)] px-4 lg:px-6 py-6">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: Video Player & Info */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Video Player */}
+              <div className="bg-black rounded-xl overflow-hidden">
+                <VideoPlayer
+                  socket={socket}
+                  currentVideoId={currentVideoId}
+                  setCurrentVideoId={setCurrentVideoId}
+                  isHost={isHost}
+                />
+              </div>
+
+              {/* Video Info */}
+              <div className="bg-[#212121] rounded-xl p-4">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-semibold text-[#f1f1f1] mb-2">
+                      Room: {roomId}
+                    </h1>
+                    {currentVideoId && (
+                      <p className="text-sm text-[#aaaaaa]">
+                        Watching together
+                      </p>
+                    )}
+                  </div>
+                  {isHost && (
+                    <Badge className="bg-[#FF0000] hover:bg-[#CC0000] text-white flex items-center gap-1">
+                      <Crown className="w-3 h-3" />
+                      Host
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-[#aaaaaa]">
+                  <span>
+                    {memberCount} {memberCount === 1 ? "viewer" : "viewers"}
+                  </span>
+                  <span>•</span>
+                  <span>Room ID: {roomId}</span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="px-3 py-1.5">
-                <Users className="w-4 h-4 mr-1.5" />
-                {memberCount} {memberCount === 1 ? "member" : "members"}
-              </Badge>
-
-              <Button onClick={copyRoomLink} variant="outline" size="sm">
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Share Link
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-4">
-            <Card className="p-4">
-              <VideoPlayer
-                socket={socket}
-                currentVideoId={currentVideoId}
-                setCurrentVideoId={setCurrentVideoId}
-                isHost={isHost}
-              />
-            </Card>
-
-            <Card className="p-4 lg:hidden">
-              <div className="h-96">
+            {/* Right: Chat Only */}
+            <div className="space-y-4">
+              <div className="h-[calc(100vh-200px)]">
                 <ChatPanel socket={socket} />
               </div>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <div className="h-96">
-              <VideoSearch
-                socket={socket}
-                serverUrl={SERVER_URL}
-                onVideoSelect={(videoId) => {
-                  setCurrentVideoId(videoId);
-                }}
-              />
-            </div>
-
-            <div className="hidden lg:block h-96">
-              <ChatPanel socket={socket} />
             </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* Global Search Modal */}
+      {showSearch && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center pt-20"
+          onClick={() => setShowSearch("")}
+        >
+          <div
+            className="bg-[#212121] rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <VideoSearch
+              socket={socket}
+              serverUrl={SERVER_URL}
+              initialQuery={showSearch}
+              onVideoSelect={(videoId) => {
+                setCurrentVideoId(videoId);
+                setShowSearch("");
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
