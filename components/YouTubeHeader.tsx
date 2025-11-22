@@ -153,15 +153,6 @@ export default function YouTubeHeader({
                       </p>
                     </div>
                   </div>
-                  <div className="mt-2 p-2 bg-[#1a1a1a] rounded text-xs">
-                    <p className="text-[#717171]">User ID</p>
-                    <p
-                      className="text-[#aaaaaa] font-mono text-[10px] truncate"
-                      title={session.user.id}
-                    >
-                      {session.user.id}
-                    </p>
-                  </div>
                 </div>
                 <DropdownMenuSeparator className="bg-[#3f3f3f]" />
                 <DropdownMenuItem
