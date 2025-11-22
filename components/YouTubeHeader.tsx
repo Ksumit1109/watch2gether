@@ -103,17 +103,65 @@ export default function YouTubeHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white"
+                  className="rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white overflow-hidden p-0"
                 >
-                  <User className="w-4 h-4 md:w-5 md:h-5" />
+                  {session.user.user_metadata?.avatar_url ||
+                  session.user.user_metadata?.picture ? (
+                    <img
+                      src={
+                        session.user.user_metadata?.avatar_url ||
+                        session.user.user_metadata?.picture
+                      }
+                      alt="User Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-4 h-4 md:w-5 md:h-5" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="bg-[#282828] border-[#3f3f3f] text-[#f1f1f1] w-56"
+                className="bg-[#282828] border-[#3f3f3f] text-[#f1f1f1] w-64"
               >
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{session.user.email}</p>
+                <div className="px-3 py-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-[#FF0000] flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {session.user.user_metadata?.avatar_url ||
+                      session.user.user_metadata?.picture ? (
+                        <img
+                          src={
+                            session.user.user_metadata?.avatar_url ||
+                            session.user.user_metadata?.picture
+                          }
+                          alt="User Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {session.user.user_metadata?.full_name ||
+                          session.user.user_metadata?.name ||
+                          session.user.email?.split("@")[0] ||
+                          "User"}
+                      </p>
+                      <p className="text-xs text-[#aaaaaa] truncate">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 p-2 bg-[#1a1a1a] rounded text-xs">
+                    <p className="text-[#717171]">User ID</p>
+                    <p
+                      className="text-[#aaaaaa] font-mono text-[10px] truncate"
+                      title={session.user.id}
+                    >
+                      {session.user.id}
+                    </p>
+                  </div>
                 </div>
                 <DropdownMenuSeparator className="bg-[#3f3f3f]" />
                 <DropdownMenuItem
